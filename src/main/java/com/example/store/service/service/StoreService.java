@@ -1,5 +1,7 @@
 package com.example.store.service.service;
 
+import com.example.store.service.entity.StoreNameMapping;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.store.service.entity.Store;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
  * - 영업시간 문자열 파싱을 통한 현재 영업 상태 계산
  */
 @Service
+@Slf4j
 public class StoreService {
     private final StoreRepository repository;
     private final StoreSeatRepository storeSeatRepository;
@@ -28,6 +31,13 @@ public class StoreService {
     public StoreService(StoreRepository repository, StoreSeatRepository storeSeatRepository) {
         this.repository = repository;
         this.storeSeatRepository = storeSeatRepository;
+    }
+
+    @Transactional
+    public String getStoreName(String storeId) {
+        StoreNameMapping storeName = repository.findByStoreId(storeId);
+        log.info("storeNAme={}", storeName.getStoreName());
+        return storeName.getStoreName();
     }
 
     public List<Store> getAllStores() { return repository.findAll(); }

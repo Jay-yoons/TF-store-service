@@ -37,6 +37,13 @@ public class StoreController {
         this.reviewService = reviewService;
     }
 
+    //가게 이름 가져오기 - 추가
+    @GetMapping("/{storeId}/name")
+    public String getStoreName(@PathVariable String storeId) {
+        log.info("가게 이름 컨트롤러, 가게id={}", storeId);
+        return service.getStoreName(storeId);
+    }
+
     /** 가게 목록 API (옵션: categoryCode로 필터링) */
     @GetMapping
     public List<StoreResponseWithLL> listStores(@RequestParam(value = "categoryCode", required = false) Integer categoryCode) {
