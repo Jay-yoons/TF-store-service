@@ -63,11 +63,11 @@ public class StoreController {
 
     /** 가게 상세 API */
     @GetMapping("/{storeId}")
-    public StoreResponse storeDetail(@PathVariable String storeId) {
+    public StoreResponseWithLL storeDetail(@PathVariable String storeId) {
         log.info("가게 상세 컨트롤러");
         Store store = service.getStore(storeId);
         int availableSeats = service.getAvailableSeats(storeId);
-        StoreResponse response = StoreResponse.fromEntityWithSeats(store, availableSeats);
+        StoreResponseWithLL response = StoreResponseWithLL.fromEntityWithSeats(store, availableSeats);
         response.setImageUrl(imageService.getImageUrl(response.getStoreId()));
         response.setImageUrls(imageService.listImageUrls(response.getStoreId(), 10));
         // 영업 상태 세팅
