@@ -1,5 +1,6 @@
 package com.example.store.service.controller;
 
+import com.example.store.service.dto.StoreResponseWithLL;
 import com.example.store.service.entity.StoreSeat;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -38,11 +39,11 @@ public class StoreController {
 
     /** 가게 목록 API (옵션: categoryCode로 필터링) */
     @GetMapping
-    public List<StoreResponse> listStores(@RequestParam(value = "categoryCode", required = false) Integer categoryCode) {
+    public List<StoreResponseWithLL> listStores(@RequestParam(value = "categoryCode", required = false) Integer categoryCode) {
         log.info("가게 목록 컨트롤러");
         return service.getStoresByCategoryCode(categoryCode).stream()
                 .map(store -> {
-                    StoreResponse r = StoreResponse.fromEntity(store);
+                    StoreResponseWithLL r = StoreResponseWithLL.fromEntity(store);
                     r.setImageUrl(imageService.getImageUrl(r.getStoreId()));
                     r.setImageUrls(imageService.listImageUrls(r.getStoreId(), 10));
                     // 영업 상태 세팅
@@ -71,6 +72,7 @@ public class StoreController {
     /** 가게 위치(위경도) 전용 API */
     @GetMapping("/{storeId}/location")
     public Map<String, String> getStoreLocation(@PathVariable String storeId) {
+        log.info("위경도 컨트롤러");
         Store store = service.getStore(storeId);
         return Map.of(
                 "latitude", store.getLatitude(),
