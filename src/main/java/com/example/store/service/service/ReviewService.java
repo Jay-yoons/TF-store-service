@@ -6,6 +6,7 @@ import com.example.store.service.dto.UpdateReviewRequestDto;
 import com.example.store.service.entity.Review;
 import com.example.store.service.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
+import com.example.store.service.security.CurrentUserProvider;
 import org.springframework.stereotype.Service;
 import com.example.store.service.exception.*;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     // storeId -> storeName 조회용
     private final com.example.store.service.repository.StoreRepository storeRepository;
+    private final CurrentUserProvider currentUserProvider;
 
     // 특정 가게의 리뷰 목록
     public List<ReviewDto> getStoreReviews(String storeId) {
@@ -35,14 +37,16 @@ public class ReviewService {
     }
 
     // 내 모든 리뷰
-    public List<ReviewDto> getMyReviews(String userId) {
+    public List<ReviewDto> getMyReviews() {
+        String userId = currentUserProvider.getCurrentUserId();
         return reviewRepository.findByUserId(userId).stream()
                 .map(ReviewDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
     // 특정 가게에서의 내 리뷰
-    public List<ReviewDto> getMyReviewsByStore(String userId, String storeId) {
+    public List<ReviewDto> getMyReviewsByStore(String storeId) {
+        String userId = currentUserProvider.getCurrentUserId();
         return reviewRepository.findByStoreIdAndUserId(storeId, userId)
                 .map(review -> List.of(ReviewDto.fromEntity(review)))
                 .orElseGet(List::of);
@@ -56,7 +60,8 @@ public class ReviewService {
     }
 
     // 리뷰 작성
-    public ReviewDto createReview(String userId, CreateReviewRequestDto dto) {
+    public ReviewDto createReview(CreateReviewRequestDto dto) {
+        String userId = currentUserProvider.getCurrentUserId();
         validateScore(dto.getScore());
         // storeId 유효성 및 최신 매장명 확보
         com.example.store.service.entity.Store store = storeRepository.findById(dto.getStoreId())
@@ -77,7 +82,8 @@ public class ReviewService {
 
     // 리뷰 수정(작성자 본인만)
     @Transactional
-    public ReviewDto updateReview(Long id, String userId, UpdateReviewRequestDto dto) {
+    public ReviewDto updateReview(Long id, UpdateReviewRequestDto dto) {
+        String userId = currentUserProvider.getCurrentUserId();
         validateScore(dto.getScore());
         boolean exists = reviewRepository.existsById(id);
         if (!exists) {
@@ -95,7 +101,8 @@ public class ReviewService {
 
     // 리뷰 삭제(작성자 본인만)
     @Transactional
-    public void deleteReview(Long id, String userId) {
+    public void deleteReview(Long id) {
+        String userId = currentUserProvider.getCurrentUserId();
         boolean exists = reviewRepository.existsById(id);
         if (!exists) {
             throw new NotFoundException("리뷰 없음");

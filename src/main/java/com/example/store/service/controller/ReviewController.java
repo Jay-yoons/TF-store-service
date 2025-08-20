@@ -6,8 +6,6 @@ import com.example.store.service.dto.UpdateReviewRequestDto;
 import com.example.store.service.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
@@ -33,23 +31,20 @@ public class ReviewController {
 
     // 내 모든 리뷰
     @GetMapping("/my")
-    public List<ReviewDto> getMyReviews(@AuthenticationPrincipal Jwt jwt) {
-        String userId = jwt.getClaimAsString("sub");
-        return reviewService.getMyReviews(userId);
+    public List<ReviewDto> getMyReviews() {
+        return reviewService.getMyReviews();
     }
 
     // 특정 매장에서의 내 리뷰
     @GetMapping("/my/stores/{storeId}")
-    public List<ReviewDto> getMyReviewsByStore(@AuthenticationPrincipal Jwt jwt, @PathVariable String storeId) {
-        String userId = jwt.getClaimAsString("sub");
-        return reviewService.getMyReviewsByStore(userId, storeId);
+    public List<ReviewDto> getMyReviewsByStore(@PathVariable String storeId) {
+        return reviewService.getMyReviewsByStore(storeId);
     }
 
     // [별칭] 내 모든 리뷰 (설계안: GET /reviews)
     @GetMapping
-    public List<ReviewDto> getMyReviewsAlias(@AuthenticationPrincipal Jwt jwt) {
-        String userId = jwt.getClaimAsString("sub");
-        return reviewService.getMyReviews(userId);
+    public List<ReviewDto> getMyReviewsAlias() {
+        return reviewService.getMyReviews();
     }
 
     // 리뷰 단건
@@ -61,24 +56,20 @@ public class ReviewController {
 
     // 리뷰 작성
     @PostMapping
-    public ReviewDto createReview(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid CreateReviewRequestDto dto) {
+    public ReviewDto createReview(@RequestBody @Valid CreateReviewRequestDto dto) {
         log.info("리뷰 작성 컨트롤러");
-
-        String userId = jwt.getClaimAsString("sub");
-        return reviewService.createReview(userId, dto);
+        return reviewService.createReview(dto);
     }
 
     // 리뷰 수정
     @PutMapping("/{id}")
-    public ReviewDto updateReview(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt, @RequestBody @Valid UpdateReviewRequestDto dto) {
-        String userId = jwt.getClaimAsString("sub");
-        return reviewService.updateReview(id, userId, dto);
+    public ReviewDto updateReview(@PathVariable Long id, @RequestBody @Valid UpdateReviewRequestDto dto) {
+        return reviewService.updateReview(id, dto);
     }
 
     // 리뷰 삭제
     @DeleteMapping("/{id}")
-    public void deleteReview(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        String userId = jwt.getClaimAsString("sub");
-        reviewService.deleteReview(id, userId);
+    public void deleteReview(@PathVariable Long id) {
+        reviewService.deleteReview(id);
     }
 }

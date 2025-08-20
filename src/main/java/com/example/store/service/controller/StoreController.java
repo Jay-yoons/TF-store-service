@@ -11,8 +11,6 @@ import com.example.store.service.dto.StoreResponse;
 import com.example.store.service.dto.ReviewDto;
 import com.example.store.service.dto.CreateReviewRequestDto;
 import com.example.store.service.service.ReviewService;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -154,11 +152,9 @@ public class StoreController {
     /** [별칭] 가게 리뷰 작성 (설계안 호환: POST /stores/{storeId}/reviews) */
     @PostMapping("/{storeId}/reviews")
     public ReviewDto createStoreReviewAlias(@PathVariable String storeId,
-                                            @AuthenticationPrincipal Jwt jwt,
                                             @RequestBody CreateReviewRequestDto dto) {
-        String userId = jwt.getClaimAsString("sub");
         // 경로에서 받은 storeId를 DTO에 세팅하여 재사용
         dto.setStoreId(storeId);
-        return reviewService.createReview(userId, dto);
+        return reviewService.createReview(dto);
     }
 }
