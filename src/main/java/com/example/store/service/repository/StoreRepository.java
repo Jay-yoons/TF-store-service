@@ -10,7 +10,7 @@ import java.util.List;
  *
  * 설계 메모
  * - 엔티티: Store (PK: String storeId)
- * - 대표 컬럼: storeName, categoryCode, storeLocation, seatNum, serviceTime, latitude/longitude
+ * - 대표 컬럼: storeName, categoryCode, storeLocation, seatNum, latitude/longitude
  * - 인덱스 권장: categoryCode, storeLocation(전방/후방 검색 시 별도 전략 고려)
  *
  * 트랜잭션/성능 가이드

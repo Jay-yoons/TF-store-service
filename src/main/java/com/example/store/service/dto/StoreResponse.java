@@ -15,7 +15,6 @@ import java.time.LocalTime;
  * - storeLocation: 가게 주소
  * - seatNum: 전체 좌석 수
  * - openTime/closeTime: 영업 시간(우선)
- * - serviceTime: (구) 문자열 포맷, 값이 있으면 참고용
  * - availableSeats: 여유 좌석 수(= 전체 좌석 - 사용중 좌석)
  * - openNow/openStatus: 현재 영업 상태
  */

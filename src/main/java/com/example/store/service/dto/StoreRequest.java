@@ -17,9 +17,6 @@ import lombok.Builder;
  *   - storeLocation -> STORES.STORE_LOCATION : 화면 표기용 주소 문자열
  *   - seatNum    -> STORES.SEAT_NUM          : 여유 좌석 계산의 모수(전체 좌석 수)
  * - 영업 시간은 OPEN_TIME/CLOSE_TIME 컬럼을 사용합니다(등록 화면에서도 해당 값 사용 권장).
- *
- * 비고
- * - serviceTime 필드는 과거 호환을 위해 남아있을 수 있으나, 현재 백엔드는 사용하지 않습니다(Deprecated).
  */
 @Getter
 @Setter
@@ -35,11 +32,4 @@ public class StoreRequest {
     private String storeLocation;
     /** STORES.SEAT_NUM: 여유 좌석 계산(= seatNum - inUsingSeat) */
     private int seatNum;
-
-    /**
-     * (Deprecated) 과거 문자열 기반 영업시간.
-     * 현재 백엔드는 OPEN_TIME/CLOSE_TIME만 사용하며, 이 필드는 무시됩니다.
-     */
-    @Deprecated
-    private String serviceTime;
 }
