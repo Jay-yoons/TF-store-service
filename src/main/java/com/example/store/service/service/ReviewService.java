@@ -1,12 +1,14 @@
 package com.example.store.service.service;
 
 import com.example.store.service.dto.ReviewDto;
-import com.example.store.service.dto.ReviewRequestDto;
+import com.example.store.service.dto.CreateReviewRequestDto;
+import com.example.store.service.dto.UpdateReviewRequestDto;
 import com.example.store.service.entity.Review;
 import com.example.store.service.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.example.store.service.exception.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,10 +43,9 @@ public class ReviewService {
 
     // 특정 가게에서의 내 리뷰
     public List<ReviewDto> getMyReviewsByStore(String userId, String storeId) {
-        return reviewRepository.findByStoreId(storeId).stream()
-                .filter(r -> r.getUserId().equals(userId))
-                .map(ReviewDto::fromEntity)
-                .collect(Collectors.toList());
+        return reviewRepository.findByStoreIdAndUserId(storeId, userId)
+                .map(review -> List.of(ReviewDto.fromEntity(review)))
+                .orElseGet(List::of);
     }
 
     // 리뷰 단건
@@ -55,7 +56,7 @@ public class ReviewService {
     }
 
     // 리뷰 작성
-    public ReviewDto createReview(String userId, ReviewRequestDto dto) {
+    public ReviewDto createReview(String userId, CreateReviewRequestDto dto) {
         validateScore(dto.getScore());
         // storeId 유효성 및 최신 매장명 확보
         com.example.store.service.entity.Store store = storeRepository.findById(dto.getStoreId())
@@ -75,26 +76,34 @@ public class ReviewService {
     }
 
     // 리뷰 수정(작성자 본인만)
-    public ReviewDto updateReview(Long id, String userId, ReviewRequestDto dto) {
-        Review review = reviewRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("리뷰 없음"));
-        if (!Objects.equals(review.getUserId(), userId)) {
+    @Transactional
+    public ReviewDto updateReview(Long id, String userId, UpdateReviewRequestDto dto) {
+        validateScore(dto.getScore());
+        boolean exists = reviewRepository.existsById(id);
+        if (!exists) {
+            throw new NotFoundException("리뷰 없음");
+        }
+        int updated = reviewRepository.updateContentAndScoreByReviewIdAndUserId(
+                id, userId, dto.getComment(), dto.getScore());
+        if (updated == 0) {
             throw new ForbiddenException("수정 권한이 없습니다.");
         }
-        validateScore(dto.getScore());
-        review.setComment(dto.getComment());
-        review.setScore(dto.getScore());
-        return ReviewDto.fromEntity(reviewRepository.save(review));
+        return reviewRepository.findById(id)
+                .map(ReviewDto::fromEntity)
+                .orElseThrow(() -> new NotFoundException("리뷰 없음"));
     }
 
     // 리뷰 삭제(작성자 본인만)
+    @Transactional
     public void deleteReview(Long id, String userId) {
-        Review review = reviewRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("리뷰 없음"));
-        if (!Objects.equals(review.getUserId(), userId)) {
+        boolean exists = reviewRepository.existsById(id);
+        if (!exists) {
+            throw new NotFoundException("리뷰 없음");
+        }
+        int deleted = reviewRepository.deleteByReviewIdAndUserId(id, userId);
+        if (deleted == 0) {
             throw new ForbiddenException("삭제 권한이 없습니다.");
         }
-        reviewRepository.deleteById(id);
     }
 
     // 평점 범위 검증(1~5)

@@ -10,6 +10,7 @@ import com.example.store.service.repository.FavStoreRepository;
 import com.example.store.service.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -50,10 +51,12 @@ public class FavoriteService { // [중요] 파일명은 FavoriteService.java
     /**
      * 즐겨찾기 제거.
      */
+    @Transactional
     public void removeFavorite(String userId, String storeId) {
-        FavStore fav = favStoreRepository.findByStoreIdAndUserId(storeId, userId)
-                .orElseThrow(() -> new NotFoundException("즐겨찾기에 없습니다."));
-        favStoreRepository.delete(fav);
+        long deleted = favStoreRepository.deleteByStoreIdAndUserId(storeId, userId);
+        if (deleted == 0) {
+            throw new NotFoundException("즐겨찾기에 없습니다.");
+        }
     }
 
     /**

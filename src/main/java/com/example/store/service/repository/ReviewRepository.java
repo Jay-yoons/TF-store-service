@@ -2,6 +2,9 @@ package com.example.store.service.repository;
 
 import com.example.store.service.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,4 +50,24 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
      * @return 리뷰 목록
      */
     List<Review> findByUserId(String userId);
+
+    /**
+     * 리뷰 내용/점수 수정 (작성자 본인 조건 포함).
+     * - 영향받은 행 수를 반환(0이면 권한 없음 또는 대상 없음)
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Review r set r.comment = :comment, r.score = :score " +
+           "where r.reviewId = :reviewId and r.userId = :userId")
+    int updateContentAndScoreByReviewIdAndUserId(@Param("reviewId") Long reviewId,
+                                                 @Param("userId") String userId,
+                                                 @Param("comment") String comment,
+                                                 @Param("score") Integer score);
+
+    /**
+     * 리뷰 삭제 (작성자 본인 조건 포함).
+     * - 영향받은 행 수를 반환(0이면 권한 없음 또는 대상 없음)
+     */
+    @Modifying
+    @Query("delete from Review r where r.reviewId = :reviewId and r.userId = :userId")
+    int deleteByReviewIdAndUserId(@Param("reviewId") Long reviewId, @Param("userId") String userId);
 }

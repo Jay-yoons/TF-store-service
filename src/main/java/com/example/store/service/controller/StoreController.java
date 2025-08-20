@@ -9,10 +9,11 @@ import com.example.store.service.service.StoreService;
 import com.example.store.service.service.StoreImageService;
 import com.example.store.service.dto.StoreResponse;
 import com.example.store.service.dto.ReviewDto;
-import com.example.store.service.dto.ReviewRequestDto;
+import com.example.store.service.dto.CreateReviewRequestDto;
 import com.example.store.service.service.ReviewService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,12 @@ public class StoreController {
                 .map(store -> {
                     StoreResponseWithLL r = StoreResponseWithLL.fromEntity(store);
                     r.setImageUrl(imageService.getImageUrl(r.getStoreId()));
-                    r.setImageUrls(imageService.listImageUrls(r.getStoreId(), 10));
+                    // 위경도: STORE_LOCATION에서 조회
+                    com.example.store.service.entity.StoreLocation loc = service.getStoreLocation(r.getStoreId());
+                    if (loc != null) {
+                        r.setLongitude(loc.getLongitude());
+                        r.setLatitude(loc.getLatitude());
+                    }
                     // 영업 상태 세팅
                     r.setOpenNow(service.isOpenNow(store));
                     r.setOpenStatus(service.openStatus(store));
@@ -69,7 +75,12 @@ public class StoreController {
         int availableSeats = service.getAvailableSeats(storeId);
         StoreResponseWithLL response = StoreResponseWithLL.fromEntityWithSeats(store, availableSeats);
         response.setImageUrl(imageService.getImageUrl(response.getStoreId()));
-        response.setImageUrls(imageService.listImageUrls(response.getStoreId(), 10));
+        // 위경도: STORE_LOCATION에서 조회
+        com.example.store.service.entity.StoreLocation loc = service.getStoreLocation(response.getStoreId());
+        if (loc != null) {
+            response.setLongitude(loc.getLongitude());
+            response.setLatitude(loc.getLatitude());
+        }
         // 영업 상태 세팅
         response.setOpenNow(service.isOpenNow(store));
         response.setOpenStatus(service.openStatus(store));
@@ -80,10 +91,13 @@ public class StoreController {
     @GetMapping("/{storeId}/location")
     public Map<String, String> getStoreLocation(@PathVariable String storeId) {
         log.info("위경도 컨트롤러");
-        Store store = service.getStore(storeId);
+        com.example.store.service.entity.StoreLocation loc = service.getStoreLocation(storeId);
+        if (loc == null) {
+            throw new IllegalArgumentException("위치 정보가 없습니다.");
+        }
         return Map.of(
-                "latitude", store.getLatitude(),
-                "longitude", store.getLongitude()
+                "latitude", loc.getLatitude(),
+                "longitude", loc.getLongitude()
         );
     }
 
@@ -111,7 +125,6 @@ public class StoreController {
                         e -> e.getValue().stream().map(store -> {
                                     StoreResponse r = StoreResponse.fromEntity(store);
                                     r.setImageUrl(imageService.getImageUrl(r.getStoreId()));
-                                    r.setImageUrls(imageService.listImageUrls(r.getStoreId(), 10));
                                     r.setOpenNow(service.isOpenNow(store));
                                     r.setOpenStatus(service.openStatus(store));
                                     return r;
@@ -142,7 +155,7 @@ public class StoreController {
     @PostMapping("/{storeId}/reviews")
     public ReviewDto createStoreReviewAlias(@PathVariable String storeId,
                                             @AuthenticationPrincipal Jwt jwt,
-                                            @RequestBody ReviewRequestDto dto) {
+                                            @RequestBody CreateReviewRequestDto dto) {
         String userId = jwt.getClaimAsString("sub");
         // 경로에서 받은 storeId를 DTO에 세팅하여 재사용
         dto.setStoreId(storeId);

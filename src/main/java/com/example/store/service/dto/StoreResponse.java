@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import java.time.LocalTime;
 
 /**
  * 가게 조회 응답 DTO.
@@ -13,7 +14,8 @@ import lombok.Builder;
  * - categoryCode: 카테고리 코드(Integer)
  * - storeLocation: 가게 주소
  * - seatNum: 전체 좌석 수
- * - serviceTime: 영업시간 문자열(예: "09:00~21:00")
+ * - openTime/closeTime: 영업 시간(우선)
+ * - serviceTime: (구) 문자열 포맷, 값이 있으면 참고용
  * - availableSeats: 여유 좌석 수(= 전체 좌석 - 사용중 좌석)
  * - openNow/openStatus: 현재 영업 상태
  */
@@ -23,20 +25,42 @@ import lombok.Builder;
 @AllArgsConstructor
 @Builder
 public class StoreResponse {
-    private String storeId;
-    private String storeName;
-    private Integer categoryCode;
-    private String categoryName;
-    private String storeLocation;
-    private int seatNum;
-    private String serviceTime;
-    private Integer availableSeats; // 선택 응답 필드
-    private String imageUrl; // S3 공개 URL 또는 프록시 URL
-    private java.util.List<String> imageUrls; // 다중 이미지 지원
 
-    // 추가 필드: 현재 영업 상태
-    private Boolean openNow;    // true: 영업중, false/null: 종료/정보없음
-    private String openStatus;  // "영업중" / "영업종료"
+    /** STORES.STORE_ID: 가게 식별자 */
+    private String storeId;
+
+    /** STORES.STORE_NAME: 가게 이름 */
+    private String storeName;
+
+    /** STORES.CATEGORY_CODE: 카테고리 코드 */
+    private Integer categoryCode;
+
+    /** 파생: 카테고리 한글명(코드 -> 라벨 매핑) */
+    private String categoryName;
+
+    /** STORES.STORE_LOCATION: 주소 문자열(표시용) */
+    private String storeLocation;
+
+    /** STORES.SEAT_NUM: 전체 좌석 수(여유 좌석의 모수) */
+    private int seatNum;
+
+    /** STORES.OPEN_TIME: 영업 시작 시간 */
+    private LocalTime openTime;
+
+    /** STORES.CLOSE_TIME: 영업 종료 시간 */
+    private LocalTime closeTime;
+
+    /** 파생: 여유 좌석 수 (= seatNum - inUsingSeat). 선택 필드 */
+    private Integer availableSeats;
+
+    /** 첨부 이미지 URL(S3/프록시 등). 선택 필드 */
+    private String imageUrl;
+
+    /** 파생: 현재 영업 여부(true/false/null) */
+    private Boolean openNow;
+
+    /** 파생: 현재 영업 상태 라벨("영업중"/"영업종료") */
+    private String openStatus;
 
     public static StoreResponse fromEntity(com.example.store.service.entity.Store store) {
         com.example.store.service.entity.Category category = com.example.store.service.entity.Category.fromCode(store.getCategoryCode());
@@ -47,7 +71,8 @@ public class StoreResponse {
                 .categoryName(category != null ? category.getKoreanName() : null)
                 .storeLocation(store.getStoreLocation())
                 .seatNum(store.getSeatNum())
-                .serviceTime(store.getServiceTime())
+                .openTime(store.getOpenTime())
+                .closeTime(store.getCloseTime())
                 .build();
     }
 

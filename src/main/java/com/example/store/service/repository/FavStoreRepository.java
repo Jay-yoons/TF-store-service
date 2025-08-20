@@ -42,4 +42,10 @@ public interface FavStoreRepository extends JpaRepository<FavStore, Long> {
      * - JWT의 sub 값을 userId로 사용
      */
     List<FavStore> findByUserId(String userId);
+
+    /**
+     * 동일 사용자-가게 조합으로 삭제.
+     * @return 삭제된 행 수
+     */
+    long deleteByStoreIdAndUserId(String storeId, String userId);
 }

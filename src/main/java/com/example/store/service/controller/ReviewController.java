@@ -1,13 +1,15 @@
 package com.example.store.service.controller;
 
 import com.example.store.service.dto.ReviewDto;
-import com.example.store.service.dto.ReviewRequestDto;
+import com.example.store.service.dto.CreateReviewRequestDto;
+import com.example.store.service.dto.UpdateReviewRequestDto;
 import com.example.store.service.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -59,7 +61,7 @@ public class ReviewController {
 
     // 리뷰 작성
     @PostMapping
-    public ReviewDto createReview(@AuthenticationPrincipal Jwt jwt, @RequestBody ReviewRequestDto dto) {
+    public ReviewDto createReview(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid CreateReviewRequestDto dto) {
         log.info("리뷰 작성 컨트롤러");
 
         String userId = jwt.getClaimAsString("sub");
@@ -68,7 +70,7 @@ public class ReviewController {
 
     // 리뷰 수정
     @PutMapping("/{id}")
-    public ReviewDto updateReview(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt, @RequestBody ReviewRequestDto dto) {
+    public ReviewDto updateReview(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt, @RequestBody @Valid UpdateReviewRequestDto dto) {
         String userId = jwt.getClaimAsString("sub");
         return reviewService.updateReview(id, userId, dto);
     }
