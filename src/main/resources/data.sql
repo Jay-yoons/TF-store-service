@@ -28,14 +28,10 @@ INSERT INTO review (review_id, store_id, user_id, coment, score) VALUES
 -- 즐겨찾기 데이터
 INSERT INTO fav_store (user_id, store_id) VALUES
 ('7438ed2c-1051-70b6-9aab-aa5465799835', 'S001'),
-('7438ed2c-1051-70b6-9aab-aa5465799835', 'S004'),
+('7438ed2c-f061-7005-8f71-fae9883a90b6', 'S004'),
 ('94586ddc-f061-7005-8f71-fae9883a90b6', 'S002'),
 ('94586ddc-f061-7005-8f71-fae9883a90b6', 'S003');
 
--- 가게 좌석 데이터
-INSERT INTO store_seat (store_id, in_using_seat) VALUES
-('S001', 0),
-('S002', 0),
-('S003', 0),
-('S004', 0),
-('S005', 0);
+
+
+

@@ -1,7 +1,6 @@
 package com.example.store.service.controller;
 
 import com.example.store.service.dto.StoreResponseWithLL;
-import com.example.store.service.entity.StoreSeat;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import com.example.store.service.entity.Store;
@@ -18,8 +17,7 @@ import java.util.Map;
 
 /**
  * 스토어 관련 REST API 엔드포인트 집합.
- * - 목록/상세/여유 좌석 조회
- * - 좌석 직접 세팅 및 예약 연동을 위한 증감 API 제공
+ * - 목록/상세 조회
  */
 @RestController
 @RequestMapping("/api/stores")
@@ -70,8 +68,7 @@ public class StoreController {
     public StoreResponseWithLL storeDetail(@PathVariable String storeId) {
         log.info("가게 상세 컨트롤러");
         Store store = service.getStore(storeId);
-        int availableSeats = service.getAvailableSeats(storeId);
-        StoreResponseWithLL response = StoreResponseWithLL.fromEntityWithSeats(store, availableSeats);
+        StoreResponseWithLL response = StoreResponseWithLL.fromEntity(store);
         response.setImageUrl(imageService.getImageUrl(response.getStoreId()));
         // 위경도: STORE_LOCATION에서 조회
         com.example.store.service.entity.StoreLocation loc = service.getStoreLocation(response.getStoreId());
@@ -99,21 +96,6 @@ public class StoreController {
         );
     }
 
-    /** Booking Service에서 호출할 REST API (좌석 정보 업데이트) */
-    @PutMapping("/{storeId}/seats")
-    public String updateSeatInfo(@PathVariable String storeId, @RequestParam int inUsingSeat) {
-        StoreSeat storeSeat = service.getStoreSeatInfo(storeId);
-        storeSeat.setInUsingSeat(inUsingSeat);
-        service.saveStoreSeat(storeSeat);
-        return "좌석 정보가 업데이트되었습니다.";
-    }
-
-    /** Booking Service에서 호출할 REST API (여유 좌석 조회) */
-    @GetMapping("/{storeId}/available-seats")
-    public int getAvailableSeats(@PathVariable String storeId) {
-        return service.getAvailableSeats(storeId);
-    }
-
     /** 가게 목록을 카테고리명(한식/일식/양식/중식/카페)으로 그룹핑하여 반환 */
     @GetMapping("/group-by-category")
     public Map<String, List<StoreResponse>> groupByCategory() {
@@ -129,18 +111,6 @@ public class StoreController {
                                 })
                                 .toList()
                 ));
-    }
-
-    /** 예약 확정 시: 사용중 좌석 증가 */
-    @PostMapping("/{storeId}/seats/increment")
-    public int incrementInUsingSeat(@PathVariable String storeId, @RequestParam(defaultValue = "1") int count) {
-        return service.incrementInUsingSeat(storeId, count);
-    }
-
-    /** 예약 취소 시: 사용중 좌석 감소 */
-    @PostMapping("/{storeId}/seats/decrement")
-    public int decrementInUsingSeat(@PathVariable String storeId, @RequestParam(defaultValue = "1") int count) {
-        return service.decrementInUsingSeat(storeId, count);
     }
 
     /** [별칭] 가게 리뷰 목록 (설계안 호환: GET /stores/{storeId}/reviews) */

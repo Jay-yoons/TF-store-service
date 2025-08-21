@@ -19,7 +19,6 @@ import java.time.LocalTime;
  * - STORE_LOCATION
  *   - latitude/longitude -> STORE_LOCATION.LATITUDE/LONGITUDE (서비스에서 조인하여 주입)
  * - 파생/계산
- *   - availableSeats : STORES.SEAT_NUM - STORE_SEAT.IN_USING_SEAT
  *   - openNow/openStatus : OPEN/CLOSE 기반 현재 시간 계산
  */
 @Getter
@@ -44,7 +43,7 @@ public class StoreResponseWithLL {
     /** STORES.STORE_LOCATION: 주소 문자열(표시용) */
     private String storeLocation;
 
-    /** STORES.SEAT_NUM: 전체 좌석 수(여유 좌석의 모수) */
+    /** STORES.SEAT_NUM: 전체 좌석 수 */
     private int seatNum;
 
     /** STORES.OPEN_TIME: 영업 시작 시간 */
@@ -52,9 +51,6 @@ public class StoreResponseWithLL {
 
     /** STORES.CLOSE_TIME: 영업 종료 시간 */
     private LocalTime closeTime;
-
-    /** 파생: 여유 좌석 수 (= seatNum - inUsingSeat). 선택 필드 */
-    private Integer availableSeats;
 
     /** 첨부 이미지 URL(S3/프록시 등). 선택 필드 */
     private String imageUrl;
@@ -83,12 +79,5 @@ public class StoreResponseWithLL {
                 .openTime(store.getOpenTime())
                 .closeTime(store.getCloseTime())
                 .build();
-    }
-
-    // (선택) 좌석 정보까지 포함하는 변환 메서드
-    public static StoreResponseWithLL fromEntityWithSeats(com.example.store.service.entity.Store store, int availableSeats) {
-        StoreResponseWithLL response = fromEntity(store);
-        response.setAvailableSeats(availableSeats);
-        return response;
     }
 }
