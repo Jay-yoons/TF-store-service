@@ -1,0 +1,50 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: store-service
+  datasource:
+    url: jdbc:h2:mem:storeservice;DB_CLOSE_DELAY=-1;MODE=LEGACY
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  thymeleaf:
+    cache: true
+  profiles:
+    active: prod
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+google:
+  maps:
+    api:
+      key: ${GOOGLE_MAPS_API_KEY:dummy}
+cloud:
+  aws:
+    region:
+      static: ap-northeast-2
+app:
+  s3:
+    bucket:
+      name: your-s3-bucket-name
+    store-image:
+      prefix: stores/
