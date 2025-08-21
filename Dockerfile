@@ -27,4 +27,4 @@ EXPOSE 8080
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD curl -sf http://localhost:8080/healthz || exit 1
+  CMD curl -sf http://localhost:8080/actuator/health || exit 1
