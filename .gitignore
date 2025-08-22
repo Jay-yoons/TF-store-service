@@ -45,3 +45,8 @@ package.json
 package-lock.json
 # Any stray TS files under backend java tree
 src/main/java/**/*.ts
+
+### Application Configuration Files ###
+# Exclude application config files from Git
+src/main/resources/application*.yml
+src/main/resources/application*.properties
