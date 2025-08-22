@@ -38,7 +38,7 @@ spring:
 google:
   maps:
     api:
-      key: YOUR_GOOGLE_MAPS_API_KEY_HERE
+      key: AIzaSyB6yKm_vZw2nCWECG9Ju_Ytg2i19W3L96s
 
 cloud:
   aws:
