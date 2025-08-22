@@ -1,6 +1,6 @@
 # Gradle caches/build outputs
 .gradle
-build
+# build
 out
 
 # IDE files
