@@ -27,8 +27,9 @@ public class Store {
     @Column(name = "CATEGORY_CODE")
     private Integer categoryCode; // DB: INTEGER
 
-    @Column(name = "STORE_LOCATION", length = 50)
-    private String storeLocation; // 예: "서울 강남구"
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "STORE_ID")
+    private StoreLocation storeLocationEntity;
 
     @Column(name = "SEAT_NUM")
     private int seatNum;

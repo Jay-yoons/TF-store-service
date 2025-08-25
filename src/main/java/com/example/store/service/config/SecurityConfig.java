@@ -3,8 +3,6 @@ package com.example.store.service.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -15,10 +13,8 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/health", "/actuator/info", "/api/stores/**", "/api/reviews/stores/**", "/api/reviews/{id}").permitAll()
-                .anyRequest().authenticated()
-            )
-            .oauth2ResourceServer(oauth -> oauth.jwt());
+                .anyRequest().permitAll()  // 모든 요청 허용
+            );
         return http.build();
     }
 }

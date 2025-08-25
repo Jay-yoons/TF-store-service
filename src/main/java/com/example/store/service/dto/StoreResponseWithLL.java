@@ -74,7 +74,6 @@ public class StoreResponseWithLL {
                 .storeName(store.getStoreName())
                 .categoryCode(store.getCategoryCode())
                 .categoryName(category != null ? category.getKoreanName() : null)
-                .storeLocation(store.getStoreLocation())
                 .seatNum(store.getSeatNum())
                 .openTime(store.getOpenTime())
                 .closeTime(store.getCloseTime())

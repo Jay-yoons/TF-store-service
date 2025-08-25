@@ -76,7 +76,7 @@ public class ReviewService {
                 .score(dto.getScore())
                 .build();
         // 비정규화 컬럼 세팅
-        review.setStoreName(store.getStoreName());
+        //review.setStoreName(store.getStoreName());
         return ReviewDto.fromEntity(reviewRepository.save(review));
     }
 

@@ -42,7 +42,6 @@ public class FavoriteService { // [중요] 파일명은 FavoriteService.java
         FavStore fav = FavStore.builder()
                 .userId(userId)
                 .storeId(storeId)
-                .storeName(store.getStoreName()) // [비정규화] 스냅샷 저장
                 .build();
 
         return favStoreRepository.save(fav);

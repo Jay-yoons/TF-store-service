@@ -42,7 +42,7 @@ public class ReviewDto {
         return ReviewDto.builder()
                 .reviewId(review.getReviewId())
                 .storeId(review.getStoreId())
-                .storeName(review.getStoreName())
+                //.storeName(review.getStoreName())
                 .userId(review.getUserId())
                 .comment(review.getComment())
                 .score(review.getScore())

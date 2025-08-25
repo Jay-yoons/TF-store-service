@@ -9,7 +9,7 @@ import lombok.*;
  * - 위경도: LONGITUDE, LATITUDE
  */
 @Entity
-@Table(name = "STORE_LOCATION")
+@Table(name = "STORES_LOCATION")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,4 +26,7 @@ public class StoreLocation {
 
     @Column(name = "LATITUDE", length = 50)
     private String latitude;
+
+    @OneToOne(mappedBy = "storeLocationEntity")
+    private Store store;
 }
