@@ -36,6 +36,9 @@ public class Store {
     @Column(name = "SEAT_NUM")
     private int seatNum;
 
+    @Column(name = "IMAGE_URL")
+    private String imageUrl;
+
     // 신규: 영업 시간 컬럼 (둘 다 있을 때 우선 사용)
     @Column(name = "OPEN_TIME")
     private LocalTime openTime;
