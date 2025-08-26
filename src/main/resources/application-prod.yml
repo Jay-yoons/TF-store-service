@@ -1,0 +1,46 @@
+# Application Configuration
+# Local development configuration
+
+server:
+  port: 8081
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:oracle:thin:@//${DB_HOST}:${DB_PORT}/${DB_NAME}
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 30000
+  application:
+    name: store-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://cognito-idp.ap-northeast-2.amazonaws.com/ap-northeast-2_bdkXgjghs
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+cloud:
+  aws:
+    region:
+      static: ap-northeast-2
+app:
+  s3:
+    bucket:
+      name: ${S3_BUCKET_NAME}
+    store-image:
+      prefix: ${S3_IMAGE_PREFIX}
+
+
