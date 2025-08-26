@@ -23,7 +23,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://cognito-idp.ap-northeast-2.amazonaws.com/ap-northeast-2_bdkXgjghs
+          issuer-uri: ${AWS_COGNITO_ISSUER_URI}
   jpa:
     hibernate:
       ddl-auto: validate
