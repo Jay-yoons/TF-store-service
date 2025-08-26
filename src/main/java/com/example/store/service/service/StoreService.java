@@ -6,10 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.store.service.entity.Store;
 import com.example.store.service.repository.StoreRepository;
+import com.example.store.service.repository.StoreLocationRepository;
+import com.example.store.service.repository.CategoryRepository;
+import com.example.store.service.entity.Category;
 
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -23,22 +25,27 @@ import java.util.stream.Collectors;
 @Slf4j
 public class StoreService {
     private final StoreRepository repository;
-    private final com.example.store.service.repository.StoreLocationRepository storeLocationRepository;
+    private final StoreLocationRepository storeLocationRepository;
+    private final CategoryRepository categoryRepository;
 
     public StoreService(StoreRepository repository,
-                        com.example.store.service.repository.StoreLocationRepository storeLocationRepository) {
+                        StoreLocationRepository storeLocationRepository,
+                        CategoryRepository categoryRepository) {
         this.repository = repository;
         this.storeLocationRepository = storeLocationRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @Transactional
     public String getStoreName(String storeId) {
         StoreNameMapping storeName = repository.findByStoreId(storeId);
-        log.info("storeNAme={}", storeName.getStoreName());
+        log.info("storeName={}", storeName.getStoreName());
         return storeName.getStoreName();
     }
 
-    public List<Store> getAllStores() { return repository.findAll(); }
+    public List<Store> getAllStores() {
+        return repository.findAll();
+    }
 
     public List<Store> getStoresByCategoryCode(Integer categoryCode) {
         if (categoryCode == null) return getAllStores();
@@ -55,16 +62,27 @@ public class StoreService {
         return storeLocationRepository.findByStoreId(storeId).orElse(null);
     }
 
-    public Store saveStore(Store store) { return repository.save(store); }
+    public Store saveStore(Store store) {
+        return repository.save(store);
+    }
 
     // 카테고리
     public String toKoreanCategoryName(Integer categoryCode) {
-        com.example.store.service.entity.Category category = com.example.store.service.entity.Category.fromCode(categoryCode);
-        return category != null ? category.getKoreanName() : "기타";
+        if (categoryCode == null) return "기타";
+        return categoryRepository.findById(categoryCode)
+                .map(Category::getKoreanName)
+                .orElse("기타");
     }
+
     public Map<String, List<Store>> groupStoresByKoreanCategoryName() {
         return getAllStores().stream()
-                .collect(Collectors.groupingBy(s -> toKoreanCategoryName(s.getCategoryCode())));
+                .collect(Collectors.groupingBy(s -> {
+                    if (s.getCategory() != null && s.getCategory().getCode() != null) {
+                        return toKoreanCategoryName(s.getCategory().getCode());
+                    } else {
+                        return "기타";
+                    }
+                }));
     }
 
     // ===================== 영업시간 판단 로직 =====================

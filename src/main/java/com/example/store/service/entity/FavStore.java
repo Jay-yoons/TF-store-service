@@ -29,18 +29,12 @@ public class FavStore { // [중요] 파일명은 FavStore.java, public class도 
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "fav_store_seq")
-    @SequenceGenerator(
-            name = "fav_store_seq",
-            sequenceName = "FAV_STORE_FAV_STORE_ID_SEQ", // ✅ 실제 DB 시퀀스 이름
-            allocationSize = 1
-    )
+    @SequenceGenerator(name = "fav_store_seq", sequenceName = "FAV_STORE_FAV_STORE_ID_SEQ", allocationSize = 1)
+    private Long favStoreId; // PK(대체키)
 
     @Column(name = "STORE_ID", length = 20, nullable = false)
     private String storeId; // 가게 식별자
 
-    // [비정규화] 매장명(목록 표시/성능 목적). 생성 시 Store에서 조회해 스냅샷 저장
-    //@Column(name = "STORE_NAME", length = 50)
-    //private String storeName;
 
     @Column(name = "USER_ID", length = 50, nullable = false)
     private String userId; // 사용자 식별자(Cognito sub 권장)

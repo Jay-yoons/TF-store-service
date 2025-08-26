@@ -1,8 +1,10 @@
 package com.example.store.service.dto;
 
-import jakarta.persistence.Column;
 import lombok.*;
 import java.time.LocalTime;
+import com.example.store.service.entity.Store;
+import com.example.store.service.entity.Category;
+import com.example.store.service.entity.StoreLocation;
 
 /**
  * 가게 조회 응답 DTO(위경도 포함).
@@ -12,12 +14,12 @@ import java.time.LocalTime;
  *   - storeId        -> STORES.STORE_ID
  *   - storeName      -> STORES.STORE_NAME
  *   - categoryCode   -> STORES.CATEGORY_CODE
- *   - storeLocation  -> STORES.STORE_LOCATION
+ *   - storeLocation  -> STORES.STORE_LOCATION (현재 null 처리)
  *   - seatNum        -> STORES.SEAT_NUM
  *   - openTime       -> STORES.OPEN_TIME
  *   - closeTime      -> STORES.CLOSE_TIME
  * - STORE_LOCATION
- *   - latitude/longitude -> STORE_LOCATION.LATITUDE/LONGITUDE (서비스에서 조인하여 주입)
+ *   - latitude/longitude -> STORE_LOCATION.LATITUDE/LONGITUDE
  * - 파생/계산
  *   - openNow/openStatus : OPEN/CLOSE 기반 현재 시간 계산
  */
@@ -40,7 +42,7 @@ public class StoreResponseWithLL {
     /** 파생: 카테고리 한글명(코드 -> 라벨 매핑) */
     private String categoryName;
 
-    /** STORES.STORE_LOCATION: 주소 문자열(표시용) */
+    /** STORES.STORE_LOCATION: 주소 문자열 (현재 null 처리) */
     private String storeLocation;
 
     /** STORES.SEAT_NUM: 전체 좌석 수 */
@@ -67,13 +69,22 @@ public class StoreResponseWithLL {
     /** 파생: 현재 영업 상태 라벨("영업중"/"영업종료") */
     private String openStatus;
 
-    public static StoreResponseWithLL fromEntity(com.example.store.service.entity.Store store) {
-        com.example.store.service.entity.Category category = com.example.store.service.entity.Category.fromCode(store.getCategoryCode());
+    public static StoreResponseWithLL fromEntity(Store store) {
+        // Category 처리
+        Category category = store.getCategory();
+
+        // StoreLocation 처리
+        StoreLocation location = store.getStoreLocationEntity();
+
         return StoreResponseWithLL.builder()
                 .storeId(store.getStoreId())
                 .storeName(store.getStoreName())
-                .categoryCode(store.getCategoryCode())
+                .categoryCode(category != null ? category.getCode() : null)
                 .categoryName(category != null ? category.getKoreanName() : null)
+                // 주소 필드가 없으므로 null 처리
+                .storeLocation(null)
+                .longitude(location != null ? location.getLongitude() : null)
+                .latitude(location != null ? location.getLatitude() : null)
                 .seatNum(store.getSeatNum())
                 .openTime(store.getOpenTime())
                 .closeTime(store.getCloseTime())

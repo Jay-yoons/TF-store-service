@@ -4,8 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * STORE_LOCATION 테이블 매핑 엔티티.
+ * STORES_LOCATION 테이블 매핑 엔티티.
  * - PK/FK: STORE_ID (STORES 참조)
+ * - 주소: STORE_LOCATION
  * - 위경도: LONGITUDE, LATITUDE
  */
 @Entity
@@ -20,6 +21,9 @@ public class StoreLocation {
     @Id
     @Column(name = "STORE_ID", length = 20, nullable = false)
     private String storeId;
+
+    @Column(name = "STORE_LOCATION")
+    private String address;   // ✅ DB: STORE_LOCATION → address 필드에 매핑
 
     @Column(name = "LONGITUDE", length = 50)
     private String longitude;

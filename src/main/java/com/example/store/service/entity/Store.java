@@ -24,8 +24,10 @@ public class Store {
     @Column(name = "STORE_NAME", length = 50)
     private String storeName;
 
-    @Column(name = "CATEGORY_CODE")
-    private Integer categoryCode; // DB: INTEGER
+    // ✅ 기존 Integer categoryCode → Category 엔티티 참조
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CATEGORY_CODE", referencedColumnName = "CATEGORY_CODE")
+    private Category category;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "STORE_ID")

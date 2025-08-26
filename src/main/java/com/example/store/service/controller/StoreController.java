@@ -99,17 +99,21 @@ public class StoreController {
     /** 가게 목록을 카테고리명(한식/일식/양식/중식/카페)으로 그룹핑하여 반환 */
     @GetMapping("/group-by-category")
     public Map<String, List<StoreResponse>> groupByCategory() {
-        return service.groupStoresByKoreanCategoryName().entrySet().stream()
-                .collect(java.util.stream.Collectors.toMap(
-                        java.util.Map.Entry::getKey,
-                        e -> e.getValue().stream().map(store -> {
+        List<Store> stores = service.getAllStores(); // 전체 스토어 조회
+
+        return stores.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        store -> store.getCategory() != null ? store.getCategory().getKoreanName() : "기타", // 변경
+                        java.util.stream.Collectors.mapping(
+                                store -> {
                                     StoreResponse r = StoreResponse.fromEntity(store);
                                     r.setImageUrl(imageService.getImageUrl(r.getStoreId()));
                                     r.setOpenNow(service.isOpenNow(store));
                                     r.setOpenStatus(service.openStatus(store));
                                     return r;
-                                })
-                                .toList()
+                                },
+                                java.util.stream.Collectors.toList()
+                        )
                 ));
     }
 

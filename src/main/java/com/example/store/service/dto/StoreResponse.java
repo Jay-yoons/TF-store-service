@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import java.time.LocalTime;
+import com.example.store.service.entity.Store;
+import com.example.store.service.entity.Category;
+
+
 
 /**
  * 가게 조회 응답 DTO.
@@ -61,18 +65,20 @@ public class StoreResponse {
     /** 파생: 현재 영업 상태 라벨("영업중"/"영업종료") */
     private String openStatus;
 
-    public static StoreResponse fromEntity(com.example.store.service.entity.Store store) {
-        com.example.store.service.entity.Category category = com.example.store.service.entity.Category.fromCode(store.getCategoryCode());
+    public static StoreResponse fromEntity(Store store) {
+        Category category = store.getCategory(); // 수정된 부분
         return StoreResponse.builder()
                 .storeId(store.getStoreId())
                 .storeName(store.getStoreName())
-                .categoryCode(store.getCategoryCode())
-                .categoryName(category != null ? category.getKoreanName() : null)
+                .categoryCode(category != null ? category.getCode() : null) // 변경
+                .categoryName(category != null ? category.getKoreanName() : null) // 변경
                 .seatNum(store.getSeatNum())
                 .openTime(store.getOpenTime())
                 .closeTime(store.getCloseTime())
                 .build();
     }
+
+
 
     // (선택) 좌석 정보까지 포함하는 변환 메서드
     public static StoreResponse fromEntityWithSeats(com.example.store.service.entity.Store store, int availableSeats) {
