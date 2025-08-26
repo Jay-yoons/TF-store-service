@@ -1,6 +1,7 @@
 package com.example.store.service.controller;
 
 import com.example.store.service.dto.StoreResponseWithLL;
+import com.example.store.service.entity.StoreLocation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import com.example.store.service.entity.Store;
@@ -50,8 +51,9 @@ public class StoreController {
                     StoreResponseWithLL r = StoreResponseWithLL.fromEntity(store);
                     r.setImageUrl(imageService.getImageUrl(r.getStoreId()));
                     // 위경도: STORE_LOCATION에서 조회
-                    com.example.store.service.entity.StoreLocation loc = service.getStoreLocation(r.getStoreId());
+                    StoreLocation loc = service.getStoreLocation(r.getStoreId());
                     if (loc != null) {
+                        r.setStoreLocation(loc.getAddress());
                         r.setLongitude(loc.getLongitude());
                         r.setLatitude(loc.getLatitude());
                     }
@@ -71,8 +73,9 @@ public class StoreController {
         StoreResponseWithLL response = StoreResponseWithLL.fromEntity(store);
         response.setImageUrl(imageService.getImageUrl(response.getStoreId()));
         // 위경도: STORE_LOCATION에서 조회
-        com.example.store.service.entity.StoreLocation loc = service.getStoreLocation(response.getStoreId());
+        StoreLocation loc = service.getStoreLocation(response.getStoreId());
         if (loc != null) {
+            response.setStoreLocation(loc.getAddress());
             response.setLongitude(loc.getLongitude());
             response.setLatitude(loc.getLatitude());
         }
@@ -86,7 +89,7 @@ public class StoreController {
     @GetMapping("/{storeId}/location")
     public Map<String, String> getStoreLocation(@PathVariable String storeId) {
         log.info("위경도 컨트롤러");
-        com.example.store.service.entity.StoreLocation loc = service.getStoreLocation(storeId);
+        StoreLocation loc = service.getStoreLocation(storeId);
         if (loc == null) {
             throw new IllegalArgumentException("위치 정보가 없습니다.");
         }

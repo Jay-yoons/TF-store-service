@@ -26,7 +26,7 @@ public class StoreImageService {
     @Value("${app.s3.bucket.name:}")
     private String bucketName;
 
-    @Value("${app.s3.store-image.prefix:stores/}")
+    @Value("${app.s3.store-image.prefix:store/}")
     private String keyPrefix;
 
     private volatile S3Client cachedClient;
@@ -38,7 +38,7 @@ public class StoreImageService {
         if (bucketName == null || bucketName.isBlank()) {
             return null;
         }
-        String key = (keyPrefix == null ? "" : keyPrefix) + storeId + ".jpg";
+        String key = (keyPrefix == null ? "" : keyPrefix) + storeId + ".png";
         // 공개 버킷 가정 URL
         return "https://" + bucketName + ".s3." + region + ".amazonaws.com/" + key;
     }

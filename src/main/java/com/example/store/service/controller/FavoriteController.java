@@ -2,6 +2,7 @@
 // 파일: src/main/java/com/example/store/service/controller/FavoriteController.java
 package com.example.store.service.controller;
 
+import com.example.store.service.dto.FavStoreDto;
 import com.example.store.service.entity.FavStore;
 import com.example.store.service.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,10 @@ public class FavoriteController {
     @GetMapping("/status")
     public java.util.Map<String, Boolean> isFavorite(@AuthenticationPrincipal Jwt jwt, @RequestParam String storeId) {
         log.info("즐겨찾기 여부 컨트롤러");
+        if (jwt == null) {
+            log.warn("JWT가 null입니다!");
+            throw new RuntimeException("인증 정보가 없습니다");
+        }
         String userId = jwt.getClaimAsString("sub");
         boolean val = favoriteService.isFavorite(userId, storeId);
         return java.util.Collections.singletonMap("isFavorite", val);
@@ -51,15 +56,16 @@ public class FavoriteController {
 
     // [조회] 내 즐겨찾기 목록
     @GetMapping("/me")
-    public List<FavStore> myFavorites(@AuthenticationPrincipal Jwt jwt) {
+    public List<FavStoreDto> myFavorites(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getClaimAsString("sub");
+        log.info("내 즐겨찾기 조회, userId={}", userId);
         return favoriteService.listFavorites(userId);
     }
 
-    // [조회 - 별칭] 내 즐겨찾기 목록 (설계안: GET /favorites)
-    @GetMapping
-    public List<FavStore> myFavoritesAlias(@AuthenticationPrincipal Jwt jwt) {
-        String userId = jwt.getClaimAsString("sub");
-        return favoriteService.listFavorites(userId);
-    }
+//    // [조회 - 별칭] 내 즐겨찾기 목록 (설계안: GET /favorites)
+//    @GetMapping
+//    public List<FavStore> myFavoritesAlias(@AuthenticationPrincipal Jwt jwt) {
+//        String userId = jwt.getClaimAsString("sub");
+//        return favoriteService.listFavorites(userId);
+//    }
 }

@@ -2,8 +2,10 @@
 // [신규] 즐겨찾기 서비스 - service 패키지 “바로 아래”에 생성하세요.
 package com.example.store.service.service;
 
+import com.example.store.service.dto.FavStoreDto;
 import com.example.store.service.entity.FavStore;
 import com.example.store.service.entity.Store;
+import com.example.store.service.entity.StoreNameMapping;
 import com.example.store.service.exception.BadRequestException;
 import com.example.store.service.exception.NotFoundException;
 import com.example.store.service.repository.FavStoreRepository;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 즐겨찾기 비즈니스 로직.
@@ -70,7 +73,12 @@ public class FavoriteService { // [중요] 파일명은 FavoriteService.java
     /**
      * 내 즐겨찾기 목록 조회.
      */
-    public List<FavStore> listFavorites(String userId) {
-        return favStoreRepository.findByUserId(userId);
+    public List<FavStoreDto> listFavorites(String userId) {
+        return favStoreRepository.findByUserId(userId).stream().map(favStore -> {
+            StoreNameMapping storeNameMapping = storeRepository.findByStoreId(favStore.getStoreId());
+            String storeName = (storeNameMapping != null) ? storeNameMapping.getStoreName() : "Unknown Store";
+
+            return new FavStoreDto(favStore.getStoreId(), favStore.getUserId(), storeName);
+        }).collect(Collectors.toList());
     }
 }

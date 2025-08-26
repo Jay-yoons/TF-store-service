@@ -1,5 +1,6 @@
 package com.example.store.service.service;
 
+import com.example.store.service.entity.StoreLocation;
 import com.example.store.service.entity.StoreNameMapping;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,30 +44,35 @@ public class StoreService {
         return storeName.getStoreName();
     }
 
+    @Transactional
     public List<Store> getAllStores() {
         return repository.findAll();
     }
 
+    @Transactional
     public List<Store> getStoresByCategoryCode(Integer categoryCode) {
         if (categoryCode == null) return getAllStores();
         return repository.findByCategoryCode(categoryCode);
     }
 
+    @Transactional
     public Store getStore(String storeId) {
         return repository.findById(storeId)
                 .orElseThrow(() -> new IllegalArgumentException("Store not found"));
     }
 
     /** 위경도 조회 (없으면 null) */
-    public com.example.store.service.entity.StoreLocation getStoreLocation(String storeId) {
+    @Transactional
+    public StoreLocation getStoreLocation(String storeId) {
         return storeLocationRepository.findByStoreId(storeId).orElse(null);
     }
 
-    public Store saveStore(Store store) {
-        return repository.save(store);
-    }
+//    public Store saveStore(Store store) {
+//        return repository.save(store);
+//    }
 
-    // 카테고리
+/*    // 카테고리
+    @Transactional
     public String toKoreanCategoryName(Integer categoryCode) {
         if (categoryCode == null) return "기타";
         return categoryRepository.findById(categoryCode)
@@ -74,6 +80,7 @@ public class StoreService {
                 .orElse("기타");
     }
 
+    @Transactional
     public Map<String, List<Store>> groupStoresByKoreanCategoryName() {
         return getAllStores().stream()
                 .collect(Collectors.groupingBy(s -> {
@@ -83,7 +90,7 @@ public class StoreService {
                         return "기타";
                     }
                 }));
-    }
+    }*/
 
     // ===================== 영업시간 판단 로직 =====================
 
