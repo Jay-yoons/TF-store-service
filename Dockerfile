@@ -1,27 +1,20 @@
-# 백엔드 런타임 전용 Dockerfile (JDK 17 slim)
-# 사전 조건: 프로젝트 루트에 빌드된 JAR 파일이 존재해야 합니다.
-# 사용 예:
-#   docker build --build-arg JAR_FILE=build/libs/app.jar -t my-backend .
-#   docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod my-backend
-
-
-FROM openjdk:17-jdk-slim
-
-# 컨테이너 내부 작업 디렉토리
+# 1. 빌드 스테이지
+FROM openjdk:17-jdk-slim AS builder
 WORKDIR /app
+COPY . .
+RUN chmod +x ./gradlew
+RUN ./gradlew clean build -x test
 
-# 빌드시 전달할 JAR 파일 경로(기본: app.jar)
-ARG JAR_FILE=build/libs/*.jar
+# 2. 실행 스테이지
+FROM openjdk:17-jdk-slim
+COPY --from=builder /app/build/libs/*.jar /app.jar
 
-# 빌드 산출물 JAR 복사
-COPY ${JAR_FILE} /app/app.jar
-
-# 기본 JVM/앱 환경 변수
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -Dfile.encoding=UTF-8"
-ENV SPRING_PROFILES_ACTIVE=prod
-
-# 애플리케이션 노출 포트 (필요 시 수정)
+# Expose port
 EXPOSE 8080
 
-# 애플리케이션 실행
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+# 3. 헬스 체크 설정 추가
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD curl -sf http://localhost:8080/health || exit 1
+
+# 4. 컨테이너 실행 명령어
+ENTRYPOINT ["java", "-jar", "/app.jar"]
