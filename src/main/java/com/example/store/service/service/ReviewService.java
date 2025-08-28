@@ -1,3 +1,5 @@
+// Java
+// 파일: src/main/java/com/example/store/service/service/ReviewService.java
 package com.example.store.service.service;
 
 import com.example.store.service.dto.ReviewDto;
@@ -63,12 +65,16 @@ public class ReviewService {
     public ReviewDto createReview(CreateReviewRequestDto dto) {
         String userId = currentUserProvider.getCurrentUserId();
         validateScore(dto.getScore());
+
+        // [변경] 존재 여부만 확인하는 existsBy... 메소드 사용
+        if (reviewRepository.existsByStoreIdAndUserId(dto.getStoreId(), userId)) {
+            throw new BadRequestException("이미 작성한 리뷰입니다.");
+        }
+
         // storeId 유효성 및 최신 매장명 확보
         com.example.store.service.entity.Store store = storeRepository.findById(dto.getStoreId())
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 매장입니다."));
-        if (reviewRepository.findByStoreIdAndUserId(dto.getStoreId(), userId).isPresent()) {
-            throw new BadRequestException("이미 작성한 리뷰입니다.");
-        }
+
         Review review = Review.builder()
                 .storeId(dto.getStoreId())
                 .userId(userId)

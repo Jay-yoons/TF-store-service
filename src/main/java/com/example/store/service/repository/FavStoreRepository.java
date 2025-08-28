@@ -19,23 +19,23 @@ import java.util.Optional;
  *
  * 트랜잭션/성능 가이드
  * - 다량 조회는 페이징(Pageable) 사용을 권장 (findByUserId(Pageable) 시그니처로 확장 가능)
- * - 중복 여부 체크는 Optional로 받되, 서비스 레이어에서 존재 여부로 분기 처리
+ * - 중복 여부 체크는 existsBy... 메소드 사용으로 성능 최적화
  *
  * 사용 예시
- * - 생성 전 중복 검사: findByStoreIdAndUserId(storeId, userId).isPresent()
+ * - 생성 전 중복 검사: existsByStoreIdAndUserId(storeId, userId)
  * - 목록 화면: findByUserId(userId)
  */
 public interface FavStoreRepository extends JpaRepository<FavStore, Long> {
 
     /**
-     * 동일 사용자-가게 조합 존재 여부 조회.
-     * - 유니크 제약(STORE_ID, USER_ID) 충돌 방지에 사용
+     * 동일 사용자-가게 조합 존재 여부 조회 (성능 최적화).
+     * - DB에 해당 레코드가 존재하는지만 효율적으로 확인합니다.
      *
      * @param storeId 매장 식별자
      * @param userId  사용자 식별자
-     * @return 존재하면 Optional<FavStore>, 없으면 Optional.empty()
+     * @return 존재하면 true, 없으면 false
      */
-    Optional<FavStore> findByStoreIdAndUserId(String storeId, String userId);
+    boolean existsByStoreIdAndUserId(String storeId, String userId);
 
     /**
      * 사용자별 즐겨찾기 목록 조회.

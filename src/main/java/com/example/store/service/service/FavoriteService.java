@@ -35,7 +35,8 @@ public class FavoriteService { // [중요] 파일명은 FavoriteService.java
      * - STORE_NAME은 Store에서 조회해 비정규화로 저장
      */
     public FavStore addFavorite(String userId, String storeId) {
-        if (favStoreRepository.findByStoreIdAndUserId(storeId, userId).isPresent()) {
+        // [변경] 존재 여부만 확인하는 existsBy... 메소드 사용
+        if (favStoreRepository.existsByStoreIdAndUserId(storeId, userId)) {
             throw new BadRequestException("이미 즐겨찾기에 추가된 매장입니다.");
         }
         // [중요] storeId 유효성 및 매장명 확보
@@ -67,7 +68,8 @@ public class FavoriteService { // [중요] 파일명은 FavoriteService.java
      * - 목록은 사용자 도메인에서 제공
      */
     public boolean isFavorite(String userId, String storeId) {
-        return favStoreRepository.findByStoreIdAndUserId(storeId, userId).isPresent();
+        // [변경] 존재 여부만 확인하는 최적화된 메소드 사용
+        return favStoreRepository.existsByStoreIdAndUserId(storeId, userId);
     }
 
     /**
