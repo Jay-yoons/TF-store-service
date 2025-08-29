@@ -1,5 +1,3 @@
-// Java
-// 파일: src/main/java/com/example/store/service/controller/FavoriteController.java
 package com.example.store.service.controller;
 
 import com.example.store.service.dto.FavStoreDto;
@@ -62,10 +60,4 @@ public class FavoriteController {
         return favoriteService.listFavorites(userId);
     }
 
-//    // [조회 - 별칭] 내 즐겨찾기 목록 (설계안: GET /favorites)
-//    @GetMapping
-//    public List<FavStore> myFavoritesAlias(@AuthenticationPrincipal Jwt jwt) {
-//        String userId = jwt.getClaimAsString("sub");
-//        return favoriteService.listFavorites(userId);
-//    }
 }

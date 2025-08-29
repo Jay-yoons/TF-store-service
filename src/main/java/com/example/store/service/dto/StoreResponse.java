@@ -9,8 +9,6 @@ import java.time.LocalTime;
 import com.example.store.service.entity.Store;
 import com.example.store.service.entity.Category;
 
-
-
 /**
  * 가게 조회 응답 DTO.
  * - storeId: 가게 식별자(STORES.STORE_ID)
@@ -77,8 +75,6 @@ public class StoreResponse {
                 .closeTime(store.getCloseTime())
                 .build();
     }
-
-
 
     // (선택) 좌석 정보까지 포함하는 변환 메서드
     public static StoreResponse fromEntityWithSeats(com.example.store.service.entity.Store store, int availableSeats) {

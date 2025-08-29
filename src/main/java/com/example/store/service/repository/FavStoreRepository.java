@@ -1,16 +1,12 @@
-// Java
-// 파일: src/main/java/com/example/store/service/repository/FavStoreRepository.java
 package com.example.store.service.repository;
 
 import com.example.store.service.entity.FavStore;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 즐겨찾기 리포지토리(JPA).
- *
  * 설계 메모
  * - 엔티티: FavStore (PK: Long favStoreId)
  * - 유니크 제약: (STORE_ID, USER_ID) 한 사용자 당 하나의 매장에 대해 1개의 즐겨찾기만 허용

@@ -1,21 +1,18 @@
 package com.example.store.service.service;
 
+import com.example.store.service.entity.Store;
 import com.example.store.service.entity.StoreLocation;
 import com.example.store.service.entity.StoreNameMapping;
+import com.example.store.service.repository.CategoryRepository;
+import com.example.store.service.repository.StoreLocationRepository;
+import com.example.store.service.repository.StoreRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.store.service.entity.Store;
-import com.example.store.service.repository.StoreRepository;
-import com.example.store.service.repository.StoreLocationRepository;
-import com.example.store.service.repository.CategoryRepository;
-import com.example.store.service.entity.Category;
 
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 스토어 도메인의 비즈니스 로직을 담당하는 서비스.
@@ -27,14 +24,12 @@ import java.util.stream.Collectors;
 public class StoreService {
     private final StoreRepository repository;
     private final StoreLocationRepository storeLocationRepository;
-    private final CategoryRepository categoryRepository;
 
     public StoreService(StoreRepository repository,
                         StoreLocationRepository storeLocationRepository,
                         CategoryRepository categoryRepository) {
         this.repository = repository;
         this.storeLocationRepository = storeLocationRepository;
-        this.categoryRepository = categoryRepository;
     }
 
     @Transactional
@@ -66,31 +61,6 @@ public class StoreService {
     public StoreLocation getStoreLocation(String storeId) {
         return storeLocationRepository.findByStoreId(storeId).orElse(null);
     }
-
-//    public Store saveStore(Store store) {
-//        return repository.save(store);
-//    }
-
-/*    // 카테고리
-    @Transactional
-    public String toKoreanCategoryName(Integer categoryCode) {
-        if (categoryCode == null) return "기타";
-        return categoryRepository.findById(categoryCode)
-                .map(Category::getKoreanName)
-                .orElse("기타");
-    }
-
-    @Transactional
-    public Map<String, List<Store>> groupStoresByKoreanCategoryName() {
-        return getAllStores().stream()
-                .collect(Collectors.groupingBy(s -> {
-                    if (s.getCategory() != null && s.getCategory().getCode() != null) {
-                        return toKoreanCategoryName(s.getCategory().getCode());
-                    } else {
-                        return "기타";
-                    }
-                }));
-    }*/
 
     // ===================== 영업시간 판단 로직 =====================
 

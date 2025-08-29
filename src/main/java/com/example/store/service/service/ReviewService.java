@@ -1,21 +1,20 @@
-// Java
-// 파일: src/main/java/com/example/store/service/service/ReviewService.java
 package com.example.store.service.service;
 
-import com.example.store.service.dto.ReviewDto;
 import com.example.store.service.dto.CreateReviewRequestDto;
+import com.example.store.service.dto.ReviewDto;
 import com.example.store.service.dto.UpdateReviewRequestDto;
 import com.example.store.service.entity.Review;
+import com.example.store.service.exception.BadRequestException;
+import com.example.store.service.exception.ForbiddenException;
+import com.example.store.service.exception.NotFoundException;
 import com.example.store.service.repository.ReviewRepository;
-import lombok.RequiredArgsConstructor;
 import com.example.store.service.security.CurrentUserProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.example.store.service.exception.*;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Objects;
 
 /**
  * 리뷰 비즈니스 로직.
@@ -81,8 +80,6 @@ public class ReviewService {
                 .comment(dto.getComment())
                 .score(dto.getScore())
                 .build();
-        // 비정규화 컬럼 세팅
-        //review.setStoreName(store.getStoreName());
         return ReviewDto.fromEntity(reviewRepository.save(review));
     }
 

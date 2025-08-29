@@ -24,15 +24,4 @@ public class StoreImageService {
                 .map(Store::getImageUrl)
                 .orElse(null);
     }
-
-    /**
-     * 호환성을 위해 리스트 리턴
-     */
-    public List<String> listImageUrls(String storeId, int limit) {
-        String url = getImageUrl(storeId);
-        if (url == null || url.isBlank()) {
-            return Collections.emptyList();
-        }
-        return Collections.singletonList(url);
-    }
 }

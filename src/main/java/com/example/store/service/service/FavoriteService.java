@@ -1,5 +1,3 @@
-// Java
-// [신규] 즐겨찾기 서비스 - service 패키지 “바로 아래”에 생성하세요.
 package com.example.store.service.service;
 
 import com.example.store.service.dto.FavStoreDto;

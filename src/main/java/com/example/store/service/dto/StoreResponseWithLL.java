@@ -8,7 +8,6 @@ import com.example.store.service.entity.StoreLocation;
 
 /**
  * 가게 조회 응답 DTO(위경도 포함).
- *
  * 사용/매핑
  * - STORES
  *   - storeId        -> STORES.STORE_ID

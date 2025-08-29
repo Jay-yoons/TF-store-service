@@ -1,5 +1,3 @@
-// Java
-// 파일: src/main/java/com/example/store/service/repository/ReviewRepository.java
 package com.example.store.service.repository;
 
 import com.example.store.service.entity.Review;
