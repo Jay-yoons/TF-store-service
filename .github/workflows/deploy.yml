@@ -1,72 +1,261 @@
-name: Deploy Store Service to ECS
+name: CI/CD Pipeline with OIDC
+
+# OIDC 토큰을 생성하기 위한 권한 설정
+permissions:
+  id-token: write # 이 권한은 필수입니다.
+  contents: read
 
 on:
   push:
-    branches: [ main, develop ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
-
-env:
-  AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: store-service
-  ECS_CLUSTER: fog-cluster
-  ECS_SERVICE: store-service
+    branches:
+      - main
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-    
+    env:
+      TZ: Asia/Seoul
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: arn:aws:iam::733995297457:role/GitHub_Actions
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::733995297457:role/GitHub_Actions
+          aws-region: ap-northeast-2
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set image tag with date and time
+        id: vars
+        run: echo "current_time=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
 
-    - name: Generate timestamp
-      id: vars
-      run: echo "current_time=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: store-service
+          IMAGE_TAG: ${{ steps.vars.outputs.current_time }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "✅ Images pushed successfully:"
+          echo "  - $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "  - $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "registry=$ECR_REGISTRY" >> $GITHUB_OUTPUT
 
-    - name: Build, tag, and push image to Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
-        IMAGE_TAG: ${{ steps.vars.outputs.current_time }}
-      run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Seoul
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Update ECS Task Definition
-      id: task-def
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
-      with:
-        task-definition: task-definition.json
-        container-name: store
-        image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.vars.outputs.current_time }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::733995297457:role/GitHub_Actions
+          aws-region: ap-northeast-2
 
-    - name: Deploy to Amazon ECS
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: ${{ env.ECS_SERVICE }}
-        cluster: ${{ env.ECS_CLUSTER }}
-        wait-for-service-stability: true
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
 
-    - name: Verify deployment
-      run: |
-        echo "Waiting for service to be stable..."
-        aws ecs wait services-stable \
-          --cluster ${{ env.ECS_CLUSTER }} \
-          --services ${{ env.ECS_SERVICE }} \
-          --region ${{ env.AWS_REGION }}
-        echo "Deployment completed successfully!"
+      - name: Get current task definition
+        id: get-task-def
+        run: |
+          echo "🔍 Getting current task definition..."
+          
+          # 현재 실행 중인 태스크 정의 가져오기
+          CURRENT_TASK_DEF=$(aws ecs describe-services \
+            --cluster fog-cluster \
+            --services store-service \
+            --region ap-northeast-2 \
+            --query 'services[0].taskDefinition' \
+            --output text)
+          
+          echo "current_task_def=$CURRENT_TASK_DEF" >> $GITHUB_OUTPUT
+          echo "📋 Current task definition: $CURRENT_TASK_DEF"
+          
+          # 태스크 정의 상세 정보 가져오기
+          aws ecs describe-task-definition \
+            --task-definition $CURRENT_TASK_DEF \
+            --region ap-northeast-2 \
+            --output json > current-task-definition.json
+          
+          echo "📄 Task definition details saved to current-task-definition.json"
+
+      - name: Update task definition and deploy to ECS
+        run: |
+          echo "🔄 Updating task definition with new image..."
+          
+          # 새로운 이미지로 태스크 정의 업데이트
+          # ECR 레지스트리 직접 가져오기
+          ECR_REGISTRY="733995297457.dkr.ecr.ap-northeast-2.amazonaws.com"
+          NEW_IMAGE="$ECR_REGISTRY/store-service:latest"
+          
+          echo "🖼️ New image: $NEW_IMAGE"
+          
+          # JSON 구조 완전 재구성: taskDefinition 키 제거하고 필요한 필드만 추출
+          echo "🔧 Restructuring JSON for ECS registration..."
+          
+          # 먼저 JSON 구조 확인
+          echo "📋 Current JSON structure:"
+          cat current-task-definition.json | jq 'keys'
+          
+          # 올바른 경로로 데이터 추출 (taskDefinition 키 내부에서)
+          # None 값이 아닌 필드만 포함
+          jq '{
+            family: .taskDefinition.family,
+            executionRoleArn: .taskDefinition.executionRoleArn,
+            taskRoleArn: .taskDefinition.taskRoleArn,
+            networkMode: .taskDefinition.networkMode,
+            requiresCompatibilities: .taskDefinition.requiresCompatibilities,
+            cpu: .taskDefinition.cpu,
+            memory: .taskDefinition.memory,
+            containerDefinitions: .taskDefinition.containerDefinitions,
+            volumes: .taskDefinition.volumes,
+            placementConstraints: .taskDefinition.placementConstraints
+          } | with_entries(select(.value != null))' current-task-definition.json > new-task-definition.json
+          
+          # 이미지 업데이트
+          jq '.containerDefinitions[0].image = "'$NEW_IMAGE'"' new-task-definition.json > temp.json && mv temp.json new-task-definition.json
+          
+          # JSON 구조 검증
+          echo "🔍 Validating JSON structure..."
+          cat new-task-definition.json | jq '.family' > /dev/null
+          cat new-task-definition.json | jq '.containerDefinitions' > /dev/null
+          echo "✅ JSON structure validation passed"
+          
+          echo "🆕 New task definition created with image: $NEW_IMAGE"
+          
+          # 태스크 정의 등록
+          echo "📝 Registering new task definition..."
+          echo "📄 JSON file content preview:"
+          head -5 new-task-definition.json
+          
+          # 태스크 정의 등록 결과를 파일로 저장
+          aws ecs register-task-definition \
+            --cli-input-json file://new-task-definition.json \
+            --region ap-northeast-2 \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text > task_def_arn.txt
+          
+          # 명령어 실행 결과 확인
+          REGISTER_EXIT_CODE=$?
+          echo "🔍 Register command exit code: $REGISTER_EXIT_CODE"
+          
+          # 파일에서 ARN 읽기
+          NEW_TASK_DEF_ARN=$(cat task_def_arn.txt)
+          echo "✅ New task definition registered: $NEW_TASK_DEF_ARN"
+          
+          # 변수 값 확인
+          echo "🔍 NEW_TASK_DEF_ARN value: '$NEW_TASK_DEF_ARN'"
+          echo "🔍 Variable length: ${#NEW_TASK_DEF_ARN}"
+          
+          # 등록 실패 시 에러 처리
+          if [ $REGISTER_EXIT_CODE -ne 0 ] || [ -z "$NEW_TASK_DEF_ARN" ]; then
+            echo "❌ Task definition registration failed!"
+            echo "🔍 Checking AWS CLI error..."
+            aws ecs register-task-definition \
+              --cli-input-json file://new-task-definition.json \
+              --region ap-northeast-2 2>&1
+            exit 1
+          fi
+          
+          echo "🚀 Deploying to Amazon ECS..."
+          
+          # ECS 서비스 업데이트 - 새로 등록된 태스크 정의 사용
+          echo "🔍 Using task definition: '$NEW_TASK_DEF_ARN'"
+          
+          aws ecs update-service \
+            --cluster fog-cluster \
+            --service store-service \
+            --task-definition "$NEW_TASK_DEF_ARN" \
+            --region ap-northeast-2
+          
+          echo "✅ ECS service updated successfully"
+
+      - name: Wait for service stability
+        run: |
+          echo "⏳ Waiting for service to be stable..."
+          
+          # 서비스 안정화 대기
+          aws ecs wait services-stable \
+            --cluster fog-cluster \
+            --services store-service \
+            --region ap-northeast-2
+          
+          echo "✅ Service is now stable"
+
+      - name: Verify deployment
+        run: |
+          echo "🔍 Verifying deployment..."
+          
+          # 배포 상태 확인
+          SERVICE_STATUS=$(aws ecs describe-services \
+            --cluster fog-cluster \
+            --services store-service \
+            --region ap-northeast-2 \
+            --query 'services[0].status' \
+            --output text)
+          
+          RUNNING_COUNT=$(aws ecs describe-services \
+            --cluster fog-cluster \
+            --services store-service \
+            --region ap-northeast-2 \
+            --query 'services[0].runningCount' \
+            --output text)
+          
+          DESIRED_COUNT=$(aws ecs describe-services \
+            --cluster fog-cluster \
+            --services store-service \
+            --region ap-northeast-2 \
+            --query 'services[0].desiredCount' \
+            --output text)
+          
+          echo "📊 Deployment Status:"
+          echo "  - Service Status: $SERVICE_STATUS"
+          echo "  - Running Tasks: $RUNNING_COUNT"
+          echo "  - Desired Tasks: $DESIRED_COUNT"
+          
+          if [ "$SERVICE_STATUS" = "ACTIVE" ] && [ "$RUNNING_COUNT" -eq "$DESIRED_COUNT" ] && [ "$RUNNING_COUNT" -gt 0 ]; then
+            echo "🎉 Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+            exit 1
+          fi
+
+      - name: CloudFront Cache Invalidation
+        run: |
+          echo "🔄 Starting CloudFront cache invalidation..."
+          
+          # CloudFront Distribution ID
+          DISTRIBUTION_ID="E3NPLCVDB66SWW"
+          
+          # Store Service 관련 경로만 무효화 (기존 ALB 규칙 기준)
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id $DISTRIBUTION_ID \
+            --paths "/api/stores/*" "/api/favorites/*" "/api/reviews/*" \
+            --query 'Invalidation.Id' \
+            --output text)
+          
+          echo "📋 Invalidation ID: $INVALIDATION_ID"
+          echo "⏳ Waiting for invalidation to complete..."
+          
+          # 무효화 완료 대기 (최대 10분)
+          aws cloudfront wait invalidation-completed \
+            --distribution-id $DISTRIBUTION_ID \
+            --id $INVALIDATION_ID
+          
+          echo "✅ CloudFront cache invalidation completed!"
