@@ -5,6 +5,10 @@ permissions:
   id-token: write # 이 권한은 필수입니다.
   contents: read
 
+permissions:
+  id-token: write # 이 권한은 필수입니다.
+  contents: read
+
 on:
   push:
     branches:
